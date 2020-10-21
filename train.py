@@ -144,7 +144,9 @@ def val(val_loader, criteria, model, tile_size):
 
         # average the predictions in the overlapping regions
         full_probs /= count_predictions  # 全概率矩陣 除以 計數矩陣 即得 平均概率
-        loss = criteria(full_probs, gt.long().cuda())
+        full_probsTensor = full_probs.transpose(2,0,1)
+        full_probsTensor = torch.tensor(full_probsTensor).reshape((1,) + full_probsTensor.shape).float().cuda()
+        loss = criteria(full_probsTensor, gt.long().cuda())
         val_loss.append(loss)
         full_probs = np.asarray(np.argmax(full_probs, axis=2), dtype=np.uint8)
         # 設置輸出原圖和預測圖片的顏色灰度還是彩色
@@ -272,7 +274,7 @@ else:
 if not os.path.exists(savedir):
     os.makedirs(savedir)
 
-with open(savedir + 'txt', 'w') as f:
+with open(savedir + 'args.txt', 'w') as f:
         f.write('mean:{}\nstd:{}\n'.format(datas['mean'], datas['std']))
         f.write("Parameters: {} Seed: {}\n".format(str(total_paramters), randomSeed))
 
