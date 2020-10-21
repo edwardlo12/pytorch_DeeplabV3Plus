@@ -102,29 +102,29 @@ def val(val_loader, criteria, model, tile_size):
     pbar = tqdm(iterable=enumerate(val_loader), total=total_batches, desc='Val')
     for i, (input, gt, city) in pbar:
         image_size = input.shape  # (1,3,3328,3072)
-        overlap = 1 / 3  # 每次滑动的覆盖率为1/3
+        overlap = 1 / 3 # 每次滑動的覆蓋率為1/3
         # print(image_size, tile_size)
-        stride = math.ceil(tile_size[0] * (1 - overlap))  # 滑动步长:512*(1-1/3) = 513     512*(1-1/3)= 342
-        tile_rows = int(math.ceil((image_size[2] - tile_size[0]) / stride) + 1)  # 行滑动步数:(3072-512)/342+1=9
-        tile_cols = int(math.ceil((image_size[3] - tile_size[1]) / stride) + 1)  # 列滑动步数:(3328-512)/342+1=10
-        full_probs = np.zeros((image_size[2], image_size[3], num_classes))  # 初始化全概率矩阵shape(3072,3328,3)
-        count_predictions = np.zeros((image_size[2], image_size[3], num_classes))  # 初始化计数矩阵shape(3072,3328,3)
+        stride = math.ceil(tile_size[0] * (1 - overlap)) # 滑動步長:512*(1-1/3) = 513 512*(1-1/3)= 342
+        tile_rows = int(math.ceil((image_size[2] - tile_size[0]) / stride) + 1) # 行滑動步數:(3072-512)/342+1=9
+        tile_cols = int(math.ceil((image_size[3] - tile_size[1]) / stride) + 1) # 列滑動步數:(3328-512)/342+1=10
+        full_probs = np.zeros((image_size[2], image_size[3], num_classes)) # 初始化全概率矩陣shape(3072,3328,3)
+        count_predictions = np.zeros((image_size[2], image_size[3], num_classes)) # 初始化計數矩陣shape(3072,3328,3)
 
         for row in range(tile_rows):  # row = 0,1     0,1,2,3,4,5,6,7,8
             for col in range(tile_cols):  # col = 0,1,2,3     0,1,2,3,4,5,6,7,8,9
-                x1 = int(col * stride)  # 起始位置x1 = 0 * 513 = 0   0*342
-                y1 = int(row * stride)  # y1 = 0 * 513 = 0   0*342
-                x2 = min(x1 + tile_size[1], image_size[3])  # 末位置x2 = min(0+512, 3328)
-                y2 = min(y1 + tile_size[0], image_size[2])  # y2 = min(0+512, 3072)
-                x1 = max(int(x2 - tile_size[1]), 0)  # 重新校准起始位置x1 = max(512-512, 0)
-                y1 = max(int(y2 - tile_size[0]), 0)  # y1 = max(512-512, 0)
+                x1 = int(col * stride) # 起始位置x1 = 0 * 513 = 0 0*342
+                y1 = int(row * stride) # y1 = 0 * 513 = 0 0*342
+                x2 = min(x1 + tile_size[1], image_size[3]) # 末位置x2 = min(0+512, 3328)
+                y2 = min(y1 + tile_size[0], image_size[2]) # y2 = min(0+512, 3072)
+                x1 = max(int(x2 - tile_size[1]), 0) # 重新校準起始位置x1 = max(512-512, 0)
+                y1 = max(int(y2 - tile_size[0]), 0) # y1 = max(512-512, 0)
 
-                img = input[:, :, y1:y2, x1:x2]  # 滑动窗口对应的图像 imge[:, :, 0:512, 0:512]
-                padded_img = pad_image(img, tile_size)  # padding 确保扣下来的图像为512*512
+                img = input[:, :, y1:y2, x1:x2] # 滑動窗口對應的圖像 imge[:, :, 0:512, 0:512]
+                padded_img = pad_image(img, tile_size) # padding 確保扣下來的圖像為512*512
                 # plt.imshow(padded_img)
                 # plt.show()
 
-                # 将扣下来的部分传入网络，网络输出概率图。
+                # 將扣下來的部分傳入網絡，網絡輸出概率圖。
                 with torch.no_grad():
                     input_var = torch.from_numpy(padded_img).cuda().float()
                     padded_prediction = model(input_var)
@@ -137,19 +137,19 @@ def val(val_loader, criteria, model, tile_size):
                 if isinstance(padded_prediction, list):
                     padded_prediction = padded_prediction[0]  # shape(1,3,512,512)
 
-                padded_prediction = padded_prediction.cpu().data[0].numpy().transpose(1, 2, 0)  # 通道位置变换(512,512,3)
-                prediction = padded_prediction[0:img.shape[2], 0:img.shape[3], :]  # 扣下相应面积 shape(512,512,3)
-                count_predictions[y1:y2, x1:x2] += 1  # 窗口区域内的计数矩阵加1
-                full_probs[y1:y2, x1:x2] += prediction  # 窗口区域内的全概率矩阵叠加预测结果
+                padded_prediction = padded_prediction.cpu().data[0].numpy().transpose(1, 2, 0) # 通道位置變換(512,512,3)
+                prediction = padded_prediction[0:img.shape[2], 0:img.shape[3], :] # 扣下相應面積 shape(512,512,3)
+                count_predictions[y1:y2, x1:x2] += 1 # 窗口區域內的計數矩陣加1
+                full_probs[y1:y2, x1:x2] += prediction # 窗口區域內的全概率矩陣疊加預測結果
 
         # average the predictions in the overlapping regions
-        full_probs /= count_predictions  # 全概率矩阵 除以 计数矩阵 即得 平均概率
+        full_probs /= count_predictions  # 全概率矩陣 除以 計數矩陣 即得 平均概率
         loss = criteria(full_probs, gt.long().cuda())
         val_loss.append(loss)
         full_probs = np.asarray(np.argmax(full_probs, axis=2), dtype=np.uint8)
-        '''设置输出原图和预测图片的颜色灰度还是彩色'''
+        # 設置輸出原圖和預測圖片的顏色灰度還是彩色
         gt = gt[0].numpy()
-        # 计算miou
+        # 計算miou
         metric.addBatch(full_probs, gt)
 
     val_loss = sum(val_loss) / len(val_loss)
