@@ -1,7 +1,7 @@
 import os,json
 
-imgRoot = 'D:/jupyter_code/pytorchCityscape/Data/leftImg8bit/'
-gtRoot = 'D:/jupyter_code/pytorchCityscape/Data/gtFine/'
+imgRoot = '/home/edward/test/pytorch_test/Cityscapes/vision_datasets/cityscapes/leftImg8bit/'
+gtRoot = '/home/edward/test/pytorch_test/Cityscapes/vision_datasets/cityscapes/gtFine/'
 
 
 trainDict = {}

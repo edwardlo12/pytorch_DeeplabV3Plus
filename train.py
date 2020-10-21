@@ -22,9 +22,9 @@ num_workers = 4
 maxEpoch = 30
 lossFunc = 'label_smoothing' # ohem, label_smoothing, LovaszSoftmax, focal
 inform_data_file = './inform/cityscapes_imform.pkl'
-trainDictPath = 'D:/jupyter_code/pytorchCityscape/pytorch_ResneSt/trainDict.json'
-valDictPath = 'D:/jupyter_code/pytorchCityscape/pytorch_ResneSt/valDict.json'
-savedir = 'D:/jupyter_code/pytorchCityscape/pytorch_ResneSt/save/'
+trainDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/trainDict.json'
+valDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/valDict.json'
+savedir = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/'
 #===========User Setup============
 
 h, w = input_size
@@ -87,7 +87,7 @@ elif(lossFunc == 'focal'):
 else:
     raise NotImplementedError('We only support ohem, label_smoothing, LovaszSoftmax, focal.')
 
-if args.cuda:
+if use_cuda:
     criteria = criteria.cuda()
     if torch.cuda.device_count() > 1:
         print("torch.cuda.device_count()=", torch.cuda.device_count())
