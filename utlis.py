@@ -31,3 +31,28 @@ def setup_seed(seed):
     np.random.seed(seed)
     random.seed(seed)
     torch.backends.cudnn.deterministic = True
+
+def netParams(model):
+    """
+    computing total network parameters
+    args:
+       model: model
+    return: the number of parameters
+    """
+    total_paramters = 0
+    for parameter in model.parameters():
+        i = len(parameter.size())
+        p = 1
+        for j in range(i):
+            p *= parameter.size(j)
+        total_paramters += p
+
+    return total_paramters
+
+def pad_image(img, target_size):
+    """Pad an image up to the target size."""
+    rows_missing = target_size[0] - img.shape[2]  # 512-512 = 0
+    cols_missing = target_size[1] - img.shape[3]  # 512-512 = 0
+    # 在右、下边用0padding
+    padded_img = np.pad(img, ((0, 0), (0, 0), (0, rows_missing), (0, cols_missing)), 'constant')
+    return padded_img  # shape(1,3,512,512)
