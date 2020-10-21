@@ -1,0 +1,10 @@
+/cityscapes_train_list.txt
+/cityscape_imform.pkl
+/DeeplabV3Plus_summary.xlsx
+/inform
+/test.ipynb
+/test.py
+/testDict.json
+/trainDict.json
+/valDict.json
+/__pycache__
