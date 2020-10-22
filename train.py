@@ -100,7 +100,7 @@ def val(val_loader, criteria, model, tile_size):
     val_loss = []
     metric = SegmentationMetric(num_classes)
     pbar = tqdm(iterable=enumerate(val_loader), total=total_batches, desc='Val')
-    for i, (input, gt, city) in pbar:
+    for i, (input, gt, name) in pbar:
         image_size = input.shape  # (1,3,3328,3072)
         overlap = 1 / 3 # 每次滑動的覆蓋率為1/3
         # print(image_size, tile_size)
@@ -302,7 +302,7 @@ if os.path.isfile(logFileLoc):
     logger = open(logFileLoc, 'a')
 else:
     logger = open(logFileLoc, 'w')
-    logger.write("%s\t%s\t\t%s\t%s\t%s\t%s\n" % ('Epoch', '   lr', 'Loss(Tr)', 'Loss(Val)', 'FWIOU(Val)', 'mIOU(Val)'))
+    logger.write("%s\t%s\t\t%s\t%s\t%s\t%s\t%s\n" % ('Epoch', '   lr', 'Loss(Tr)', 'Loss(Val)', 'FWIOU(Val)', 'mIOU(Val)', 'Per Class IOU'))
 logger.flush()
 
 # define optimization strategy
@@ -373,10 +373,12 @@ for epoch in range(start_epoch, maxEpoch):
         epoch_list = []
         lossTr_list = []
         lossVal_list = []
+        mIOU_val_list = []
         for line in f.readlines():
             epoch_list.append(float(line.strip().split()[0]))
             lossTr_list.append(float(line.strip().split()[2]))
             lossVal_list.append(float(line.strip().split()[3]))
+            mIOU_val_list.append(float(line.strip().split()[5]))
         assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
 
         fig1, ax1 = plt.subplots(figsize=(11, 8))
@@ -391,6 +393,17 @@ for epoch in range(start_epoch, maxEpoch):
         plt.savefig(savedir + "loss.png")
         plt.close('all')
         plt.clf()
+
+        fig2, ax2 = plt.subplots(figsize=(11, 8))
+
+        ax2.plot(range(0, epoch + 1), mIOU_val_list, label="Val IoU")
+        ax2.set_title("Average IoU vs epochs")
+        ax2.set_xlabel("Epochs")
+        ax2.set_ylabel("Current IoU")
+        ax2.legend()
+
+        plt.savefig(savedir + "mIou.png")
+        plt.close('all')
     else:
         fig1, ax1 = plt.subplots(figsize=(11, 8))
 

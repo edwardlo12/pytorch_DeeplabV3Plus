@@ -12,7 +12,7 @@ class cityscapesFineTrain(Dataset):
     def __getitem__(self,index):
         image = cv2.imread(self.imgList[index], cv2.IMREAD_COLOR)
         label = cv2.imread(self.imagePathDict[self.imgList[index]], cv2.IMREAD_GRAYSCALE)
-        city = self.imgList[index].split('/')[-2]
+        name = self.imgList[index].split('/')[-1].split('.')[0]
         image = np.asarray(image, np.float32)
         image -= self.mean
         image = image[:,:,::-1]
@@ -38,7 +38,7 @@ class cityscapesFineTrain(Dataset):
 
         image = image.transpose((2, 0, 1))  # NHWC -> NCHW
 
-        return torch.tensor(image.copy()), torch.tensor(label.copy()), city
+        return torch.tensor(image.copy()), torch.tensor(label.copy()), name
 
 
     def __len__(self):
@@ -58,7 +58,7 @@ class cityscapesFineVal(Dataset):
     def __getitem__(self, index):
         image = cv2.imread(self.imgList[index], cv2.IMREAD_COLOR)
         label = cv2.imread(self.imagePathDict[self.imgList[index]], cv2.IMREAD_GRAYSCALE)
-        city = self.imgList[index].split('/')[-2]
+        name = self.imgList[index].split('/')[-1].split('.')[0]
 
         image = np.asarray(image, np.float32)
 
@@ -66,7 +66,32 @@ class cityscapesFineVal(Dataset):
         image = image[:, :, ::-1]  # change to RGB
         image = image.transpose((2, 0, 1))  # HWC -> CHW
 
-        return torch.tensor(image.copy()), torch.tensor(label.copy()), city
+        return torch.tensor(image.copy()), torch.tensor(label.copy()), name
+
+
+class cityscapesFineTest(Dataset):
+    def __init__(self, imagePathDict, mean=(128, 128, 128), ignore_label=255):
+        self.imagePathDict = imagePathDict
+        self.imgList = list(self.imagePathDict.keys())
+        self.mean = mean
+        self.ignore_label = ignore_label
+    
+    def __len__(self):
+        return len(self.imgList)
+
+    def __getitem__(self, index):
+        image = cv2.imread(self.imgList[index], cv2.IMREAD_COLOR)
+        name = self.imgList[index].split('/')[-1].split('.')[0]
+
+        image = np.asarray(image, np.float32)
+
+        image -= self.mean
+        image = image[:, :, ::-1]  # change to RGB
+        image = image.transpose((2, 0, 1))  # HWC -> CHW
+
+        label = None
+
+        return torch.tensor(image.copy()), label, name
 
 
 class CityscapesTrainInform:
