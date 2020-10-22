@@ -101,7 +101,7 @@ def val(val_loader, criteria, model, tile_size):
     val_loss = []
     metric = SegmentationMetric(num_classes)
     pbar = tqdm(iterable=enumerate(val_loader), total=total_batches, desc='Val')
-    for i, (input, gt, city) in pbar:
+    for i, (input, gt, name) in pbar:
         image_size = input.shape  # (1,3,3328,3072)
         overlap = 1 / 3 # 每次滑動的覆蓋率為1/3
         # print(image_size, tile_size)
@@ -150,7 +150,8 @@ def val(val_loader, criteria, model, tile_size):
         loss = criteria(full_probsTensor, gt.long().cuda())
         val_loss.append(loss)
         full_probs = np.asarray(np.argmax(full_probs, axis=2), dtype=np.uint8)
-        '''設置輸出原圖和預測圖片的顏色灰度還是彩色'''
+        # 設置輸出原圖和預測圖片的顏色灰度還是彩色
+
         gt = gt[0].numpy()
         # 計算miou
         metric.addBatch(full_probs, gt)
@@ -394,7 +395,7 @@ for epoch in range(start_epoch, maxEpoch):
         plt.savefig(savedir + "loss.png")
         plt.close('all')
         plt.clf()
-        
+
         fig2, ax2 = plt.subplots(figsize=(11, 8))
 
         ax2.plot(range(0, epoch + 1), mIOU_val_list, label="Val IoU")
