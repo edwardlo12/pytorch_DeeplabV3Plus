@@ -371,20 +371,30 @@ for epoch in range(start_epoch, maxEpoch):
         f = open(savedir + 'log.txt', 'r')
         next(f)
         epoch_list = []
+        epoch_listVal = []
         lossTr_list = []
         lossVal_list = []
         mIOU_val_list = []
+        FWIOU_val_list = []
         for line in f.readlines():
-            epoch_list.append(float(line.strip().split()[0]))
-            lossTr_list.append(float(line.strip().split()[2]))
-            lossVal_list.append(float(line.strip().split()[3]))
-            mIOU_val_list.append(float(line.strip().split()[5]))
+            if(len(line.split())>3):
+                # With IOU
+                epoch_list.append(float(line.strip().split()[0]))
+                lossTr_list.append(float(line.strip().split()[2]))
+                epoch_listVal.append(float(line.strip().split()[0]))
+                lossVal_list.append(float(line.strip().split()[3]))
+                FWIOU_val_list.append(float(line.strip().split()[4]))
+                mIOU_val_list.append(float(line.strip().split()[5]))
+            else:
+                # Without IOU
+                epoch_list.append(float(line.strip().split()[0]))
+                lossTr_list.append(float(line.strip().split()[2]))
         assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
 
         fig1, ax1 = plt.subplots(figsize=(11, 8))
 
-        ax1.plot(range(0, epoch + 1), lossTr_list, label='Train_loss')
-        ax1.plot(range(0, epoch + 1), lossVal_list, label='Val_loss')
+        ax1.plot(epoch_list, lossTr_list, label='Train_loss')
+        ax1.plot(epoch_listVal, lossVal_list, label='Val_loss')
         ax1.set_title("Average training loss vs epochs")
         ax1.set_xlabel("Epochs")
         ax1.set_ylabel("Current loss")
@@ -396,7 +406,8 @@ for epoch in range(start_epoch, maxEpoch):
 
         fig2, ax2 = plt.subplots(figsize=(11, 8))
 
-        ax2.plot(range(0, epoch + 1), mIOU_val_list, label="Val IoU")
+        ax2.plot(epoch_listVal, mIOU_val_list, label="Val mean IoU")
+        ax2.plot(epoch_listVal, FWIOU_val_list, label="Val frequency weighted IoU")
         ax2.set_title("Average IoU vs epochs")
         ax2.set_xlabel("Epochs")
         ax2.set_ylabel("Current IoU")
