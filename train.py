@@ -389,7 +389,7 @@ for epoch in range(start_epoch, maxEpoch):
                 # Without IOU
                 epoch_list.append(float(line.strip().split()[0]))
                 lossTr_list.append(float(line.strip().split()[2]))
-        assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
+        # assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
 
         fig1, ax1 = plt.subplots(figsize=(11, 8))
 
@@ -438,15 +438,15 @@ for epoch in range(start_epoch, maxEpoch):
 
         plt.savefig(savedir + "mIou.png")
         plt.close('all')
-
-    early_stopping.monitor(monitor=mIOU_val)
-    if early_stopping.early_stop:
-        print("Early stopping and Save checkpoint")
-        if not os.path.exists(model_file_name):
-            torch.save(state, model_file_name)
-            val_loss, FWIoU, mIOU_val, per_class_iu = val(valLoader, criteria, model, tile_size=(tile_size, tile_size))
-            print("Epoch  %d\tlr= %.6f\tTrain Loss = %.4f\tVal Loss = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
-                    epoch, lr, lossTr, val_loss, mIOU_val, str(per_class_iu)))
-        break
+    if epoch % val_epochs == 0 or epoch == maxEpoch-1:
+        early_stopping.monitor(monitor=mIOU_val)
+        if early_stopping.early_stop:
+            print("Early stopping and Save checkpoint")
+            if not os.path.exists(model_file_name):
+                torch.save(state, model_file_name)
+                val_loss, FWIoU, mIOU_val, per_class_iu = val(valLoader, criteria, model, tile_size=(tile_size, tile_size))
+                print("Epoch  %d\tlr= %.6f\tTrain Loss = %.4f\tVal Loss = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
+                        epoch, lr, lossTr, val_loss, mIOU_val, str(per_class_iu)))
+            break
 
 logger.close()
