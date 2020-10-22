@@ -80,6 +80,8 @@ class CrossEntropyLoss2dLabelSmooth(_WeightedLoss):
         # log_probs = F.log_softmax(inputs, dim=1)
         targets = torch.zeros_like(output).scatter_(1, target.unsqueeze(1), 1)
         targets = (1 - self.epsilon) * targets + self.epsilon / n_classes
+        targets = targets.long()
+        print(targets.dtype)
 
         return self.nll_loss(output, targets)
 
