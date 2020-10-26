@@ -394,7 +394,7 @@ for epoch in range(start_epoch, maxEpoch):
                 # Without IOU
                 epoch_list.append(float(line.strip().split()[0]))
                 lossTr_list.append(float(line.strip().split()[2]))
-#         assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
+        # assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
 
         fig1, ax1 = plt.subplots(figsize=(11, 8))
 
