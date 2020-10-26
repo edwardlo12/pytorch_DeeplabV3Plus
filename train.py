@@ -177,8 +177,8 @@ ignore_label = 255
 num_classes = 19
 batch_size = 4
 num_workers = 4
-maxEpoch = 300
-val_epochs = 1
+maxEpoch = 500
+val_epochs = 10
 baseLr = 5e-4
 lr_schedule = 'warmpoly'
 poly_exp = 0.9
@@ -190,7 +190,7 @@ trainDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus
 valDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/valDict.json'
 savedir = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/'
 logFile = 'log.txt'
-resume = ''
+resume = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/cityscapes/deeplabV3Plusbs4gpu1_train/model_299.pth'
 #===========User Setup============
 
 h, w = input_size
@@ -339,6 +339,9 @@ for epoch in range(start_epoch, maxEpoch):
     # training
     lossTr, lr = train(trainLoader, model, criteria, optimizer, epoch)
     lossTr_list.append(lossTr)
+#     lossTr = 0
+#     lr =0
+#     lossTr_list.append(lossTr)
 
     # validation
     if epoch % val_epochs == 0 or epoch == maxEpoch-1:
@@ -373,20 +376,30 @@ for epoch in range(start_epoch, maxEpoch):
         f = open(savedir + 'log.txt', 'r')
         next(f)
         epoch_list = []
+        epoch_listVal = []
         lossTr_list = []
         lossVal_list = []
         mIOU_val_list = []
+        FWIOU_val_list = []
         for line in f.readlines():
-            epoch_list.append(float(line.strip().split()[0]))
-            lossTr_list.append(float(line.strip().split()[2]))
-            lossVal_list.append(float(line.strip().split()[3]))
-            mIOU_val_list.append(float(line.strip().split()[5]))
-        assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
+            if(len(line.split())>3):
+                # With IOU
+                epoch_list.append(float(line.strip().split()[0]))
+                lossTr_list.append(float(line.strip().split()[2]))
+                epoch_listVal.append(float(line.strip().split()[0]))
+                lossVal_list.append(float(line.strip().split()[3]))
+                FWIOU_val_list.append(float(line.strip().split()[4]))
+                mIOU_val_list.append(float(line.strip().split()[5]))
+            else:
+                # Without IOU
+                epoch_list.append(float(line.strip().split()[0]))
+                lossTr_list.append(float(line.strip().split()[2]))
+#         assert len(epoch_list) == len(lossTr_list) == len(lossVal_list)
 
         fig1, ax1 = plt.subplots(figsize=(11, 8))
 
-        ax1.plot(range(0, epoch + 1), lossTr_list, label='Train_loss')
-        ax1.plot(range(0, epoch + 1), lossVal_list, label='Val_loss')
+        ax1.plot(epoch_list, lossTr_list, label='Train_loss')
+        ax1.plot(epoch_listVal, lossVal_list, label='Val_loss')
         ax1.set_title("Average training loss vs epochs")
         ax1.set_xlabel("Epochs")
         ax1.set_ylabel("Current loss")
@@ -398,7 +411,8 @@ for epoch in range(start_epoch, maxEpoch):
 
         fig2, ax2 = plt.subplots(figsize=(11, 8))
 
-        ax2.plot(range(0, epoch + 1), mIOU_val_list, label="Val IoU")
+        ax2.plot(epoch_listVal, mIOU_val_list, label="Val mean IoU")
+        ax2.plot(epoch_listVal, FWIOU_val_list, label="Val frequency weighted IoU")
         ax2.set_title("Average IoU vs epochs")
         ax2.set_xlabel("Epochs")
         ax2.set_ylabel("Current IoU")
@@ -429,15 +443,15 @@ for epoch in range(start_epoch, maxEpoch):
 
         plt.savefig(savedir + "mIou.png")
         plt.close('all')
-
-    early_stopping.monitor(monitor=mIOU_val)
-    if early_stopping.early_stop:
-        print("Early stopping and Save checkpoint")
-        if not os.path.exists(model_file_name):
-            torch.save(state, model_file_name)
-            val_loss, FWIoU, mIOU_val, per_class_iu = val(valLoader, criteria, model, tile_size=(tile_size, tile_size))
-            print("Epoch  %d\tlr= %.6f\tTrain Loss = %.4f\tVal Loss = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
-                    epoch, lr, lossTr, val_loss, mIOU_val, str(per_class_iu)))
-        break
+    if epoch % val_epochs == 0 or epoch == maxEpoch-1:
+        early_stopping.monitor(monitor=mIOU_val)
+        if early_stopping.early_stop:
+            print("Early stopping and Save checkpoint")
+            if not os.path.exists(model_file_name):
+                torch.save(state, model_file_name)
+                val_loss, FWIoU, mIOU_val, per_class_iu = val(valLoader, criteria, model, tile_size=(tile_size, tile_size))
+                print("Epoch  %d\tlr= %.6f\tTrain Loss = %.4f\tVal Loss = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
+                        epoch, lr, lossTr, val_loss, mIOU_val, str(per_class_iu)))
+            break
 
 logger.close()
