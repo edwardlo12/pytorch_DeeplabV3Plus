@@ -59,6 +59,14 @@ def pad_image(img, target_size):
     padded_img = np.pad(img, ((0, 0), (0, 0), (0, rows_missing), (0, cols_missing)), 'constant')
     return padded_img  # shape(1,3,512,512)
 
+def pad_label(img, target_size):
+    """Pad an image up to the target size."""
+    rows_missing = target_size[0] - img.shape[1]  # 512-512 = 0
+    cols_missing = target_size[1] - img.shape[2]  # 512-512 = 0
+    # 在右、下边用0padding
+    padded_img = np.pad(img, ((0, 0), (0, rows_missing), (0, cols_missing)), 'constant')
+    return padded_img  # shape(1,512,512)
+
 def save_predict(output, gt, img_name, save_path, output_grey=False, output_color=True, gt_color=False):
     if output_grey:
         output_grey = Image.fromarray(output)

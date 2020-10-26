@@ -1,7 +1,7 @@
 import torch
 import torch.backends.cudnn as cudnn
 from torch.utils import data
-from dataset import CityscapesTrainInform, cityscapesFineTest
+from dataset import CityscapesTrainInform, cityscapesFineTest, cityscapesFineVal
 from DeeplabV3Plus.DeeplabV3Plus import Deeplabv3plus
 from DeeplabV3Plus.config import cfg
 from tqdm import tqdm
@@ -95,15 +95,15 @@ def test(val_loader, model, tile_size):
 
 
 # ==========User Setup============
-use_cuda = False # torch.cuda.is_available() # Can be set to False manual
+use_cuda = torch.cuda.is_available() # Can be set to False manual
 num_workers = 4
 num_classes = 19
 tile_size = 1024
-none_gt = True
-savedir = 'D:/jupyter_code/pytorchCityscape/pytorch_ResneSt/save/'
-checkpoint = ''
-trainDictPath = 'D:/jupyter_code/pytorchCityscape/pytorch_ResneSt/trainDict.json'
-testDictPath = 'D:/jupyter_code/pytorchCityscape/pytorch_ResneSt/testDict.json'
+none_gt = False
+savedir = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/'
+checkpoint = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/cityscapes/deeplabV3Plusbs4gpu1_train/model_299.pth'
+trainDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/trainDict.json'
+testDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/valDict.json'
 inform_data_file = './inform/cityscapes_imform.pkl'
 # ==========User Setup============
 

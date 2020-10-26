@@ -89,7 +89,7 @@ class cityscapesFineTest(Dataset):
         image = image[:, :, ::-1]  # change to RGB
         image = image.transpose((2, 0, 1))  # HWC -> CHW
 
-        label = None
+        label = -1
 
         return torch.tensor(image.copy()), label, name
 
