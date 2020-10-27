@@ -56,8 +56,8 @@ def train(train_loader, model, criterion, optimizer, epoch):
 
         images, labels, _ = batch
 
-        images = images.cuda()
-        labels = labels.long().cuda()
+        images = images.to(device)
+        labels = labels.long().to(device)
         # if model == 'PSPNet50':
         #     x, aux = model(images)
         #     main_loss = criterion(x, labels)
@@ -127,7 +127,7 @@ def val(val_loader, criteria, model, tile_size):
 
                 # 將扣下來的部分傳入網絡，網絡輸出概率圖。
                 with torch.no_grad():
-                    input_var = torch.from_numpy(padded_img).cuda().float()
+                    input_var = torch.from_numpy(padded_img).to(device).float()
                     padded_prediction = model(input_var)
 
                     if type(padded_prediction) is tuple:
@@ -146,8 +146,8 @@ def val(val_loader, criteria, model, tile_size):
         # average the predictions in the overlapping regions
         full_probs /= count_predictions  # 全概率矩陣 除以 計數矩陣 即得 平均概率
         full_probsTensor = full_probs.transpose(2,0,1)
-        full_probsTensor = torch.tensor(full_probsTensor).reshape((1,) + full_probsTensor.shape).float().cuda()
-        loss = criteria(full_probsTensor, gt.long().cuda())
+        full_probsTensor = torch.tensor(full_probsTensor).reshape((1,) + full_probsTensor.shape).float().to(device)
+        loss = criteria(full_probsTensor, gt.long().to(device))
         val_loss.append(loss)
         full_probs = np.asarray(np.argmax(full_probs, axis=2), dtype=np.uint8)
         # 設置輸出原圖和預測圖片的顏色灰度還是彩色
@@ -175,9 +175,9 @@ input_size = (512, 1024)
 tile_size = 1024
 ignore_label = 255
 num_classes = 19
-batch_size = 4
+batch_size = 2
 num_workers = 4
-maxEpoch = 500
+maxEpoch = 200
 val_epochs = 10
 baseLr = 5e-4
 lr_schedule = 'warmpoly'
@@ -190,7 +190,7 @@ trainDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus
 valDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/valDict.json'
 savedir = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/'
 logFile = 'log.txt'
-resume = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/cityscapes/deeplabV3Plusbs4gpu1_train/model_299.pth'
+resume = ''
 #===========User Setup============
 
 h, w = input_size
@@ -257,15 +257,15 @@ else:
     raise NotImplementedError('We only support ohem, label_smoothing, LovaszSoftmax and focal as loss function.')
 
 if use_cuda:
-    criteria = criteria.cuda()
+    criteria = criteria.to(device)
     if torch.cuda.device_count() > 1:
         print("torch.cuda.device_count()=", torch.cuda.device_count())
         gpu_nums = torch.cuda.device_count()
-        model = nn.DataParallel(model).cuda()  # multi-card data parallel
+        model = nn.DataParallel(model).to(device)  # multi-card data parallel
     else:
         gpu_nums = 1
         print("single GPU for training")
-        model = model.cuda()  # 1-card data parallel
+        model = model.to(device)  # 1-card data parallel
 
     savedir = (savedir + 'cityscapes/deeplabV3Plusbs'
                     + str(batch_size) + 'gpu' + str(gpu_nums) + '_train/')

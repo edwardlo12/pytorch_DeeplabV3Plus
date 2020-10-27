@@ -1,7 +1,7 @@
 class Configuration():
 	def __init__(self):
 		self.MODEL_NAME = 'deeplabv3plus'
-		self.MODEL_BACKBONE = 'res50_atrous'
+		self.MODEL_BACKBONE = 'xception'
 		self.MODEL_OUTPUT_STRIDE = 16
 		self.MODEL_ASPP_OUTDIM = 256
 		self.MODEL_SHORTCUT_DIM = 48

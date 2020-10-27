@@ -25,7 +25,8 @@ bn_mom = 0.0003
 __all__ = ['xception']
 
 model_urls = {
-    'xception': '/home/wangyude/.torch/models/xception_pytorch_imagenet.pth'#'http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth'
+    'xception': '/home/edward/test/pytorch_test/Cityscapes/xception_pytorch_imagenet.pth'#'http://data.lip6.fr/cadene/pretrainedmodels/xception-b5690688.pth'
+    # download from https://drive.google.com/open?id=1_j_mE07tiV24xXOJw4XDze0-a0NAhNVi
 }
 
 class SeparableConv2d(nn.Module):
@@ -228,10 +229,11 @@ def xception(pretrained=True, os=16):
     model = Xception(os=os)
     if pretrained:
         old_dict = torch.load(model_urls['xception'])
-        # old_dict = model_zoo.load_url(model_urls['xception'])
-        # for name, weights in old_dict.items():
-        #     if 'pointwise' in name:
-        #         old_dict[name] = weights.unsqueeze(-1).unsqueeze(-1)
+#         old_dict = model_zoo.load_url(model_urls['xception'])
+#         for name, weights in old_dict.items():
+#             if 'pointwise' in name:
+#                 print(name, weights.size())
+#                 old_dict[name] = weights.unsqueeze(-1).unsqueeze(-1)
         model_dict = model.state_dict()
         old_dict = {k: v for k,v in old_dict.items() if ('itr' not in k and 'tmp' not in k and 'track' not in k)}
         model_dict.update(old_dict)
