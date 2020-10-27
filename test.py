@@ -48,7 +48,8 @@ def test(val_loader, model, tile_size):
 
                 # 將扣下來的部分傳入網絡，網絡輸出概率圖。
                 with torch.no_grad():
-                    input_var = torch.from_numpy(padded_img).cuda().float()
+                    input_var = torch.from_numpy(padded_img).float()
+                    input_var = input_var.to(device)
                     padded_prediction = model(input_var)
 
                     if type(padded_prediction) is tuple:
@@ -80,18 +81,18 @@ def test(val_loader, model, tile_size):
             os.makedirs(saveDir)
         save_predict(full_probs, gt, name[0], saveDir, output_grey=False, output_color=True, gt_color=True)
 
-        if not(none_gt):
-            pa = metric.pixelAccuracy()
-            cpa = metric.classPixelAccuracy()
-            mpa = metric.meanPixelAccuracy()
-            Miou, PerMiou_set = metric.meanIntersectionOverUnion()
-            FWIoU = metric.Frequency_Weighted_Intersection_over_Union()
+    if not(none_gt):
+        pa = metric.pixelAccuracy()
+        cpa = metric.classPixelAccuracy()
+        mpa = metric.meanPixelAccuracy()
+        Miou, PerMiou_set = metric.meanIntersectionOverUnion()
+        FWIoU = metric.Frequency_Weighted_Intersection_over_Union()
 
-            print('miou {}\nclass iou {}'.format(Miou, PerMiou_set))
-            result = save_seg_dir + '/results.txt'
-            with open(result, 'w') as f:
-                f.write(str(Miou))
-                f.write('\n{}'.format(PerMiou_set))
+    print('miou {}\nclass iou {}'.format(Miou, PerMiou_set))
+    result = save_seg_dir + '/results.txt'
+    with open(result, 'w') as f:
+        f.write(str(Miou))
+        f.write('\n{}'.format(PerMiou_set))
 
 
 # ==========User Setup============
@@ -103,7 +104,7 @@ none_gt = False
 savedir = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/'
 checkpoint = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/cityscapes/deeplabV3Plusbs4gpu1_train/model_299.pth'
 trainDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/trainDict.json'
-testDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/valDict.json'
+testDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/trainDict.json'
 inform_data_file = './inform/cityscapes_imform.pkl'
 # ==========User Setup============
 
