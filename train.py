@@ -9,7 +9,7 @@ from utlis import setup_seed, init_weight, netParams, pad_image
 from earlyStopping import EarlyStopping
 from DeeplabV3Plus.DeeplabV3Plus import Deeplabv3plus
 from DeeplabV3Plus.config import cfg
-from loss import LovaszSoftmax, CrossEntropyLoss2d, CrossEntropyLoss2dLabelSmooth, ProbOhemCrossEntropy2d, FocalLoss2d
+from loss import LovaszSoftmax, FocalLoss2d, CrossEntropyLoss
 from custom_optim import RAdam, Ranger, AdamW
 from scheduler.lr_scheduler import WarmupPolyLR
 from metric.SegmentationMetric import SegmentationMetric
@@ -67,7 +67,7 @@ def train(train_loader, model, criterion, optimizer, epoch):
         output = model(images)
         if type(output) is tuple:
             output = output[0]
-#         print(output.dtype, labels.dtype)
+        # print(output.dtype, labels.dtype)
         loss = criterion(output, labels)
 
         optimizer.zero_grad()
@@ -183,7 +183,7 @@ baseLr = 1e-4
 lr_schedule = 'poly'
 poly_exp = 0.9
 warmup_iters = 500
-lossFunc = 'LovaszSoftmax' # ohem, label_smoothing, LovaszSoftmax, focal
+lossFunc = 'LovaszSoftmax' # CrossEntropy, LovaszSoftmax, focal
 optimSelect = 'adam' # sgd, adam, radam, ranger, adamw
 inform_data_file = './inform/cityscapes_imform.pkl'
 trainDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/trainDict.json'
@@ -244,17 +244,19 @@ print('mean and std: ', datas['mean'], datas['std'])
 # define loss function, respectively
 weight = torch.from_numpy(datas['classWeights'])
 
-if(lossFunc == 'ohem'):
-    min_kept = int(batch_size // len(gpus) * h * w // 16)
-    criteria = ProbOhemCrossEntropy2d(use_weight=True, ignore_label=ignore_label, thresh=0.7, min_kept=min_kept)
-elif(lossFunc == 'label_smoothing'):
-    criteria = CrossEntropyLoss2dLabelSmooth(weight=weight, ignore_label=ignore_label)
+# if(lossFunc == 'ohem'):
+#     min_kept = int(batch_size // len(gpus) * h * w // 16)
+#     criteria = ProbOhemCrossEntropy2d(use_weight=True, ignore_label=ignore_label, thresh=0.7, min_kept=min_kept)
+# elif(lossFunc == 'label_smoothing'):
+#     criteria = CrossEntropyLoss2dLabelSmooth(weight=weight, ignore_label=ignore_label)
+if(lossFunc == 'CrossEntropy'):
+    criteria = CrossEntropyLoss(weight=weight, ignore_index=ignore_label)
 elif(lossFunc == 'LovaszSoftmax'):
     criteria = LovaszSoftmax(ignore_index=ignore_label)
 elif(lossFunc == 'focal'):
     criteria = FocalLoss2d(weight=weight, ignore_index=ignore_label)
 else:
-    raise NotImplementedError('We only support ohem, label_smoothing, LovaszSoftmax and focal as loss function.')
+    raise NotImplementedError('We only support CrossEntropy, LovaszSoftmax and focal as loss function.')
 
 if use_cuda:
     criteria = criteria.to(device)

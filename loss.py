@@ -11,6 +11,12 @@ __all__ = ["CrossEntropyLoss2d", "CrossEntropyLoss2dLabelSmooth",
            "FocalLoss2d", "LDAMLoss", "ProbOhemCrossEntropy2d",
            "LovaszSoftmax"]
 
+class CrossEntropyLoss(nn.Module):
+    def __init__(self, weight=None, ignore_index=255, size_average=True):
+        self.ce = nn.CrossEntropyLoss(weight=self.weight, ignore_index=self.ignore_index, size_average=self.size_average)
+    def forward(self, output, target):
+        loss = self.ce(output, target)
+        return loss
 
 class CrossEntropyLoss2d(_WeightedLoss):
     """
