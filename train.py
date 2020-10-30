@@ -171,16 +171,16 @@ def val(val_loader, criteria, model, tile_size):
 use_cuda = torch.cuda.is_available() # Can be set to False manual
 gpus = 0
 randomSeed = 1
-input_size = (512, 1024)
-tile_size = 1024
+input_size = (512, 512)
+tile_size = 512
 ignore_label = 255
 num_classes = 19
-batch_size = 2
+batch_size = 4
 num_workers = 4
 maxEpoch = 200
 val_epochs = 10
-baseLr = 5e-4
-lr_schedule = 'warmpoly'
+baseLr = 1e-4
+lr_schedule = 'poly'
 poly_exp = 0.9
 warmup_iters = 500
 lossFunc = 'LovaszSoftmax' # ohem, label_smoothing, LovaszSoftmax, focal
@@ -190,7 +190,7 @@ trainDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus
 valDictPath = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/valDict.json'
 savedir = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/'
 logFile = 'log.txt'
-resume = ''
+resume = '/home/edward/test/pytorch_test/Cityscapes/pytorch_DeeplabV3Plus/save/cityscapes/deeplabV3Plusbs2gpu1_train/model_199.pth'
 #===========User Setup============
 
 h, w = input_size
@@ -351,15 +351,15 @@ for epoch in range(start_epoch, maxEpoch):
         lossVal_list.append(val_loss.item())
         # record train information
         logger.write(
-            "%d\t%.6f\t%.4f\t\t%.4f\t\t%0.4f\t\t%0.4f\t\t%s\n" % (epoch, lr, lossTr, val_loss, FWIoU, mIOU_val, per_class_iu))
+            "%d\t%.10f\t%.4f\t\t%.4f\t\t%0.4f\t\t%0.4f\t\t%s\n" % (epoch, lr, lossTr, val_loss, FWIoU, mIOU_val, per_class_iu))
         logger.flush()
-        print("Epoch  %d\tlr= %.6f\tTrain Loss = %.4f\tVal Loss = %.4f\tFWIOU(val) = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
+        print("Epoch  %d\tlr= %.10f\tTrain Loss = %.4f\tVal Loss = %.4f\tFWIOU(val) = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
             epoch, lr, lossTr, val_loss, FWIoU, mIOU_val, str(per_class_iu)))
     else:
         # record train information
-        logger.write("%d\t%.6f\t%.4f\n" % (epoch, lr, lossTr))
+        logger.write("%d\t%.10f\t%.4f\n" % (epoch, lr, lossTr))
         logger.flush()
-        print("Epoch  %d\tlr= %.6f\tTrain Loss = %.4f\n" % (epoch, lr, lossTr))
+        print("Epoch  %d\tlr= %.10f\tTrain Loss = %.4f\n" % (epoch, lr, lossTr))
 
     # save the model
     model_file_name = savedir + '/model_' + str(epoch) + '.pth'
@@ -450,7 +450,7 @@ for epoch in range(start_epoch, maxEpoch):
             if not os.path.exists(model_file_name):
                 torch.save(state, model_file_name)
                 val_loss, FWIoU, mIOU_val, per_class_iu = val(valLoader, criteria, model, tile_size=(tile_size, tile_size))
-                print("Epoch  %d\tlr= %.6f\tTrain Loss = %.4f\tVal Loss = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
+                print("Epoch  %d\tlr= %.10f\tTrain Loss = %.4f\tVal Loss = %.4f\tmIOU(val) = %.4f\tper_class_iu= %s\n" % (
                         epoch, lr, lossTr, val_loss, mIOU_val, str(per_class_iu)))
             break
 
