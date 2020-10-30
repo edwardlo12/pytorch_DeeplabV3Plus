@@ -249,7 +249,7 @@ weight = torch.from_numpy(datas['classWeights'])
 #     criteria = ProbOhemCrossEntropy2d(use_weight=True, ignore_label=ignore_label, thresh=0.7, min_kept=min_kept)
 # elif(lossFunc == 'label_smoothing'):
 #     criteria = CrossEntropyLoss2dLabelSmooth(weight=weight, ignore_label=ignore_label)
-if(lossFunc = 'CrossEntropy'):
+if(lossFunc == 'CrossEntropy'):
     criteria = CrossEntropyLoss(weight=weight, ignore_index=ignore_label)
 elif(lossFunc == 'LovaszSoftmax'):
     criteria = LovaszSoftmax(ignore_index=ignore_label)
