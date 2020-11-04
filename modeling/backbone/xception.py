@@ -249,32 +249,33 @@ class AlignedXception(nn.Module):
         model_dict = {}
         state_dict = self.state_dict()
 
-        for k, v in pretrain_dict.items():
-            if k in state_dict:
-                if 'pointwise' in k:
-                    v = v.unsqueeze(-1).unsqueeze(-1)
-                if k.startswith('block11'):
-                    model_dict[k] = v
-                    model_dict[k.replace('block11', 'block12')] = v
-                    model_dict[k.replace('block11', 'block13')] = v
-                    model_dict[k.replace('block11', 'block14')] = v
-                    model_dict[k.replace('block11', 'block15')] = v
-                    model_dict[k.replace('block11', 'block16')] = v
-                    model_dict[k.replace('block11', 'block17')] = v
-                    model_dict[k.replace('block11', 'block18')] = v
-                    model_dict[k.replace('block11', 'block19')] = v
-                elif k.startswith('block12'):
-                    model_dict[k.replace('block12', 'block20')] = v
-                elif k.startswith('bn3'):
-                    model_dict[k] = v
-                    model_dict[k.replace('bn3', 'bn4')] = v
-                elif k.startswith('conv4'):
-                    model_dict[k.replace('conv4', 'conv5')] = v
-                elif k.startswith('bn4'):
-                    model_dict[k.replace('bn4', 'bn5')] = v
-                else:
-                    model_dict[k] = v
-        state_dict.update(model_dict)
+        # for k, v in pretrain_dict.items():
+        #     if k in state_dict:
+        #         if 'pointwise' in k:
+        #             v = v.unsqueeze(-1).unsqueeze(-1)
+        #         if k.startswith('block11'):
+        #             model_dict[k] = v
+        #             model_dict[k.replace('block11', 'block12')] = v
+        #             model_dict[k.replace('block11', 'block13')] = v
+        #             model_dict[k.replace('block11', 'block14')] = v
+        #             model_dict[k.replace('block11', 'block15')] = v
+        #             model_dict[k.replace('block11', 'block16')] = v
+        #             model_dict[k.replace('block11', 'block17')] = v
+        #             model_dict[k.replace('block11', 'block18')] = v
+        #             model_dict[k.replace('block11', 'block19')] = v
+        #         elif k.startswith('block12'):
+        #             model_dict[k.replace('block12', 'block20')] = v
+        #         elif k.startswith('bn3'):
+        #             model_dict[k] = v
+        #             model_dict[k.replace('bn3', 'bn4')] = v
+        #         elif k.startswith('conv4'):
+        #             model_dict[k.replace('conv4', 'conv5')] = v
+        #         elif k.startswith('bn4'):
+        #             model_dict[k.replace('bn4', 'bn5')] = v
+        #         else:
+        #             model_dict[k] = v
+        pretrain_dict = {k: v for k,v in pretrain_dict.items() if ('itr' not in k and 'tmp' not in k and 'track' not in k)}
+        state_dict.update(pretrain_dict)
         self.load_state_dict(state_dict)
 
 
