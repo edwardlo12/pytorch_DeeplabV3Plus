@@ -7,8 +7,9 @@ from torch import optim
 from dataset import CityscapesTrainInform, cityscapesFineTrain, cityscapesFineVal
 from utlis import setup_seed, init_weight, netParams, pad_image
 from earlyStopping import EarlyStopping
-from DeeplabV3Plus.DeeplabV3Plus import Deeplabv3plus
-from DeeplabV3Plus.config import cfg
+# from DeeplabV3Plus.DeeplabV3Plus import Deeplabv3plus
+# from DeeplabV3Plus.config import cfg
+from modeling.deeplab import *
 from loss import LovaszSoftmax, FocalLoss2d, CrossEntropyLoss
 from custom_optim import RAdam, Ranger, AdamW
 from scheduler.lr_scheduler import WarmupPolyLR
@@ -202,10 +203,15 @@ cudnn.enabled = True
 device = torch.device("cuda" if use_cuda else "cpu")
 
 # build the model and initialization
-model = Deeplabv3plus(cfg, num_classes=num_classes).to(device)
-init_weight(model, nn.init.kaiming_normal_,
-                nn.BatchNorm2d, 1e-3, 0.1,
-                mode='fan_in')
+model = DeepLab(num_classes=num_classes,
+                        backbone='xception',
+                        output_stride=16,
+                        sync_bn=True,
+                        freeze_bn=False).to(device)
+# Deeplabv3plus(cfg, num_classes=num_classes).to(device)
+# init_weight(model, nn.init.kaiming_normal_,
+#                 nn.BatchNorm2d, 1e-3, 0.1,
+#                 mode='fan_in')
 print("computing network parameters and FLOPs")
 total_paramters = netParams(model)
 print("the number of parameters: %d ==> %.2f M" % (total_paramters, (total_paramters / 1e6)))
@@ -309,25 +315,50 @@ else:
     logger.write("%s\t%s\t\t%s\t%s\t%s\t%s\t%s\n" % ('Epoch', '   lr', 'Loss(Tr)', 'Loss(Val)', 'FWIOU(Val)', 'mIOU(Val)', 'Per Class IOU'))
 logger.flush()
 
-# define optimization strategy
+# define optimization strategy OLD
+# if optimSelect == 'sgd':
+#     optimizer = torch.optim.SGD(
+#         filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, momentum=0.9, weight_decay=1e-4)
+# elif optimSelect == 'adam':
+#     optimizer = torch.optim.Adam(
+#         filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.9, 0.999), eps=1e-08,
+#         weight_decay=1e-4)
+# elif optimSelect == 'radam':
+#     optimizer = RAdam(
+#         filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.90, 0.999), eps=1e-08,
+#         weight_decay=1e-4)
+# elif optimSelect == 'ranger':
+#     optimizer = Ranger(
+#         filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.95, 0.999), eps=1e-08,
+#         weight_decay=1e-4)
+# elif optimSelect == 'adamw':
+#     optimizer = AdamW(
+#         filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.9, 0.999), eps=1e-08,
+#         weight_decay=1e-4)
+# else:
+#     raise NotImplementedError('We only support sgd, adam, radam, ranger and adamw as optimizer.')
+
+# define optimization strategy NEW
+train_params = [{'params': model.get_1x_lr_params(), 'lr': baseLr},
+                {'params': model.get_10x_lr_params(), 'lr': baseLr * 10}]
 if optimSelect == 'sgd':
     optimizer = torch.optim.SGD(
-        filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, momentum=0.9, weight_decay=1e-4)
+        train_params, momentum=0.9, weight_decay=1e-4)
 elif optimSelect == 'adam':
     optimizer = torch.optim.Adam(
-        filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.9, 0.999), eps=1e-08,
+        train_params, betas=(0.9, 0.999), eps=1e-08,
         weight_decay=1e-4)
 elif optimSelect == 'radam':
     optimizer = RAdam(
-        filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.90, 0.999), eps=1e-08,
+        train_params, betas=(0.90, 0.999), eps=1e-08,
         weight_decay=1e-4)
 elif optimSelect == 'ranger':
     optimizer = Ranger(
-        filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.95, 0.999), eps=1e-08,
+        train_params, betas=(0.95, 0.999), eps=1e-08,
         weight_decay=1e-4)
 elif optimSelect == 'adamw':
     optimizer = AdamW(
-        filter(lambda p: p.requires_grad, model.parameters()), lr=baseLr, betas=(0.9, 0.999), eps=1e-08,
+        train_params, betas=(0.9, 0.999), eps=1e-08,
         weight_decay=1e-4)
 else:
     raise NotImplementedError('We only support sgd, adam, radam, ranger and adamw as optimizer.')
